@@ -8,6 +8,7 @@ import com.nhathm4.reactlibrary.responsemodels.ShelfCurrentLoansResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.swing.text.html.Option;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -95,6 +96,34 @@ public class BookService {
         }
         return shelfCurrentLoansResponse;
 
+    }
+
+    public void returnBook(String userEmail, Long bookId) throws Exception{
+        Optional<Book> book = bookRepository.findById(bookId);
+
+        Checkout validateCheckout = checkoutRepository.findByUserEmailAndBookId(userEmail,bookId);
+
+        if (!book.isPresent() || validateCheckout == null){
+            throw new Exception("This book is not exists !!!");
+        }
+
+        book.get().setCopiesAvailable(book.get().getCopiesAvailable()+1);
+        bookRepository.save(book.get());
+        checkoutRepository.deleteById(validateCheckout.getId());
+
+    }
+
+    public void renewBook(String userEmail, Long bookId) throws Exception{
+        Optional<Book> book = bookRepository.findById(bookId);
+
+        Checkout validateCheckout = checkoutRepository.findByUserEmailAndBookId(userEmail,bookId);
+
+        if (!book.isPresent() || validateCheckout == null){
+            throw new Exception("This book is not exists !!!");
+        }
+
+        checkoutRepository.deleteById(validateCheckout.getId());
+        checkoutBook(userEmail, bookId);
     }
 
 }
