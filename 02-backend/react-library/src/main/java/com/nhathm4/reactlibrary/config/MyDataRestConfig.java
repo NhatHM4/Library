@@ -2,6 +2,7 @@ package com.nhathm4.reactlibrary.config;
 
 import com.nhathm4.reactlibrary.entity.Book;
 import com.nhathm4.reactlibrary.entity.History;
+import com.nhathm4.reactlibrary.entity.Message;
 import com.nhathm4.reactlibrary.entity.Review;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.rest.core.config.RepositoryRestConfiguration;
@@ -20,10 +21,12 @@ public class MyDataRestConfig implements RepositoryRestConfigurer {
         config.exposeIdsFor(Book.class);
         config.exposeIdsFor(Review.class);
         config.exposeIdsFor(History.class);
+        config.exposeIdsFor(Message.class);
 
         disableHttpMethods(Book.class, config, theUnsupportedActions);
         disableHttpMethods(Review.class, config, theUnsupportedActions);
         disableHttpMethods(History.class, config, theUnsupportedActions);
+        disableHttpMethods(Message.class, config, theUnsupportedActions);
 
         cors.addMapping(config.getBasePath() + "*")
                 .allowedOrigins(theAllowedOrigins);
