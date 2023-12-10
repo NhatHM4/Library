@@ -2,12 +2,12 @@ package com.nhathm4.reactlibrary.controller;
 
 import com.nhathm4.reactlibrary.configvnpay.Config;
 import com.nhathm4.reactlibrary.dto.PaymentResDTO;
+import com.nhathm4.reactlibrary.service.PaymentService;
+import com.nhathm4.reactlibrary.utils.ExtractJWT;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -17,20 +17,34 @@ import java.util.*;
 
 @CrossOrigin("https://localhost:3000")
 @RestController
-@RequestMapping("/api/pay")
+@RequestMapping("/api/payment/secure")
 public class PaymentController {
+
+    private PaymentService paymentService;
+
+    @Autowired
+    public PaymentController(PaymentService paymentService){
+        this.paymentService = paymentService;
+    }
+
+    @PutMapping("/payment_complete")
+    public ResponseEntity<String> stripePaymentComplete(@RequestHeader(value = "Authorization") String token) throws Exception {
+        String userEmail = ExtractJWT.payloadJWTExtraction(token, "\"sub\"");
+        if (userEmail == null){
+            throw  new Exception("Useremail  is missing !!!");
+        }
+        return paymentService.stripePayment(userEmail);
+    }
+
+
 
     @GetMapping("/create_payment")
     public ResponseEntity<?> createPayment() throws UnsupportedEncodingException {
-//        String orderType = "other";
-//        long amount = Integer.parseInt(req.getParameter("amount"))*100;
-//        String bankCode = req.getParameter("bankCode");
+
 
         long amount = 1000000; // edit lai
 
         String vnp_TxnRef = Config.getRandomNumber(8);
-//        String vnp_IpAddr = Config.getIpAddress(req);
-
         String vnp_TmnCode = Config.vnp_TmnCode;
 
         Map<String, String> vnp_Params = new HashMap<>();
@@ -46,13 +60,6 @@ public class PaymentController {
 
         vnp_Params.put("vnp_OrderType", "topup");
         vnp_Params.put("vnp_ReturnUrl", Config.vnp_ReturnUrl);
-//        String locate = req.getParameter("language");
-//        if (locate != null && !locate.isEmpty()) {
-//            vnp_Params.put("vnp_Locale", locate);
-//        } else {
-//            vnp_Params.put("vnp_Locale", "vn");
-//        }
-
         vnp_Params.put("vnp_IpAddr", "123.123.123.123");
 
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
@@ -98,4 +105,7 @@ public class PaymentController {
         paymentResDTO.setUrl(paymentUrl);
         return ResponseEntity.status(HttpStatus.OK).body(paymentResDTO);
     }
+
+
+
 }
